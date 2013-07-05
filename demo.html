@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ibroller demo</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+	    <script src="lib/jquery-1.8.3.min.js"></script>
+	    <script src="lib/jquery-ui.js"></script>
+	    <script src="src/ibr.js"></script>
+	    <style>
+	    	html, body, ul, li, table {margin: 0; padding: 0; font-family:gulim, AppleGothic, Tahoma; font-size: 12px; font-weight: normal; color: #999}
+	    	html, body {background: #2F2F36;}
+	    	a {color: #5F5F5F}
+	    	a:active {text-decoration:none;}
+			a:link {text-decoration:none; }
+			a:visited {text-decoration:none;}
+			a:hover {color: #fff}
+			.wrap {width: 400px; height: 200px; margin:100px auto; position: relative; border: 1px solid #000 background: #000}
+			.mask {width: 400px; height: 200px; background: #000; border: 1px solid #000}
+			.mask li {list-style: none;}
+			.unit {width: 80px; height: 114px;}
+			.unit img {width: 80px; height: 114px;}
+	    </style>
+    </head>
+    <body>
+    	<div class="wrap " style="">
+	         <div class="mask">
+	             <ul class="group">
+	                 <li class="unit"><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=4384460&type=15"></li>
+	                 <li class="unit"><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=5952922&type=15"></li>
+	                 <li class="unit"><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=5784329&type=15"></li>
+	                 <li class="unit"><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=4396976&type=15"></li>
+	                 <li class="unit"><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=4320689&type=15"></li>
+	                 <li class="unit"><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=4345932&type=15"></li>
+	                 <li class="unit"><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=4350588&type=15"></li>
+	                 <li class="unit"><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=5774435&type=15"></li>
+	                 <li class="unit"><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=5774427&type=15"></li>
+	                 <li class="unit"><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=5730412&type=15"></li>
+	                 <li class="unit"><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=5730027&type=15"></li>
+	                 <li class="unit"><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=4269914&type=15"></li>
+	                 <li class="unit"><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=4356896&type=15"></li>
+		           </ul>
+	         </div>
+			<script>
+			var args = {
+				"wrap": ".warp",
+				"mask": ".mask",
+				"group": {
+					"element": ".group",
+					"row": 1,
+					"col": 3,
+					"marginTop": 10,
+					"marginRight": 10,
+					"marginBottom": 10,
+					"marginLeft": 10
+				},
+				"unit": {
+					"element": ".unit",
+					"width": 0,
+					"height": 0,
+					"marginTop": 5,
+					"marginRight": 5,
+					"marginBottom": 5,
+					"marginLeft": 5
+				},
+				"events": {
+					"init": function (index) {
+						
+					},
+					"focus": function (index) {
+					},
+					"on": function (index) {
+					},
+					"off": function (index) {
+					},
+					"timeout": function (t) {
+					}
+				},
+				"play": {
+					"auto": false,
+					"fx": ibr.fx.normal,
+					"direction": ibr.dir.left,
+					"intervalTime": 3000
+				},
+				"startIndex": 2
+			};
+			var ibroller = new ibr(args);
+			</script>
+		</div>
+    </body>
+</html>
