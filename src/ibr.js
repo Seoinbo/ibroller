@@ -41,37 +41,7 @@
 		}
 		return dest;
 	};
-	
-	_css = {
-		"mask": {
-			"overflow": "hidden"
-		},
-		"unit": {
-			"position": "absolute"
-		},
-		"pos_left": {
-			"top": 0;
-			"": 0;
-		},
-		"pos_right": {
-			"top": 0;
-			"right": 0;
-		},
-		"pos_top": {
-			"top": 0;
-			"left": 0;
-		},
-		"pos_bottom": {
-			"top": 0;
-			"bottom": 0;
-		},
-		"pos_center": {
-			"top": 0;
-			"left": 0;
-		}
 		
-	}
-	
 	var _ibroller = function (args) {
 		if (typeof args.group === "string") {
 			args.group = {
@@ -127,6 +97,36 @@
 			"$group": {},
 			"$unit": {}
 		};
+		
+		this.css = {
+			"mask": {
+				"overflow": "hidden"
+			},
+			"unit": {
+				"position": "absolute"
+			},
+			"pos_left": {
+				"top": 0,
+				"right": 0
+			},
+			"pos_right": {
+				"top": 0,
+				"right": 0
+			},
+			"pos_top": {
+				"top": 0,
+				"left": 0
+			},
+			"pos_bottom": {
+				"top": 0,
+				"bottom": 0
+			},
+			"pos_selected": {
+				"top": 0,
+				"left": 0
+			}
+		};
+		
 		this.totalUnit = 0; // 총 unit 개 수
 		this.totalGroup = 0; // 총 group 개 수
 		this.sizeOfGroup = 0; // 총 group 당 unit 개 수
@@ -138,7 +138,6 @@
 		
 		// 초기화
 		this.init();
-		this.grouping();
 		
 		// 엘리먼트 속성 적용
 		var _this = this;
@@ -158,10 +157,10 @@
 	
 	_ibroller.prototype = {
 		"init": function () {
-			this.ele.$wrap = $(this.args.wrap);
-			this.ele.$mask = $(this.args.mask).css(_css.mask);
-			this.ele.$group = $(this.args.group.element);
-			this.ele.$unit = $(this.args.unit.element).css(_css.unit);
+			this.ele.$wrap = $(this.args.wrap).addClass("ibroller");
+			this.ele.$mask = $(this.args.mask).addClass("ibr_mask").css(this.css.mask);
+			this.ele.$group = $(this.args.group.element).addClass("ibr_group");
+			this.ele.$unit = $(this.args.unit.element).addClass("ibr_unit").css(this.css.unit);
 			
 			this.sizeOfGroup = this.args.group.col * this.args.group.row;
 			this.totalUnit = this.ele.$unit.length;
@@ -171,28 +170,72 @@
 			this.nowIndex = this.args.startIndex;
 			this.intervalTime = (this.args.play.intervalTime > this.minimumTime) ? this.args.play.intervalTime : this.minimumTime;
 			
-			_css.prev = {
-				
-			};
+			this.focus(this.nowIndex);
+			
 			// init event call
 			if (typeof this.args.events.init === "function") {
 				this.args.events.init.apply(null, [this.nowIndex]);
 			}
 		},
+		'applyFx': function (fx) {
+			var _this = this,
+				fx = fx || this.args.play.fx,
+				$prev = this.ele.$group.find(".ibr_prev"),
+				$selected = this.ele.$group.find(".ibr_selected"),
+				$next = this.ele.$group.find(".ibr_next");
+			switch (fx) {
+			case _effects.noAni:
+			default:
+				break;
+			case _effects.normal:
+				$prev.each( function (i) {
+					var $this = $(this),
+						w = _this.args.unit.width || $this.width();
+					$(this).css({
+						"left": (w + 10 * (i + 1)) * -1,
+						"right": ""
+					});	
+				});
+				$selected.each( function (i) {
+					var $this = $(this),
+						w = _this.args.unit.width || $this.width();
+					$(this).css({
+						"left": _this.args.group.left + (w * i),
+						"top": _this.args.group.top,
+						"right": ""
+					});
+				});
+				$next.each( function (i) {
+					var $this = $(this),
+						w = _this.args.unit.width || $this.width();
+					$(this).css({
+						"right": (w + 10 * (i + 1)) * -1,
+						"left": ""
+					});
+				});
+				break;
+			case _effects.delayed:
+				break;
+			case _effects.fade:
+				break;
+			}			
+		},
 		"focus": function (idx) {
-			var idx = idx  || this.nowIndex,
+			var idx = idx  === undefined ? this.nowIndex : idx,
 				s = idx * this.sizeOfGroup,
 				e = s + this.sizeOfGroup;
+				
+			this.ele.$unit.removeClass("ibr_prev ibr_selected ibr_next");
 			for (var i = 0; i < this.totalUnit; i++) {
 				if (i < s) {
 					this.ele.$unit.eq(i).addClass("ibr_prev");
 				} else if (i >= e) {
 					this.ele.$unit.eq(i).addClass("ibr_next");
 				} else {
-					this.ele.$unit.eq(i).addClass("ibr_current");
+					this.ele.$unit.eq(i).addClass("ibr_selected");
 				}
-				this.ele.$unit.eq(i).css("left", i * 80);
 			}
+			this.applyFx();
 		},
 	};
 	
