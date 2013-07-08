@@ -178,6 +178,18 @@
 			this.intervalTime = (this.args.play.intervalTime > this.minimumTime) ? this.args.play.intervalTime : this.minimumTime;
 			this.focus(this.nowIndex);
 			
+			// css3 prefix
+			var b = $.browser;
+			if (b.webkit || b.safari) {
+				this.prefix = "-webkit-";
+			} else if (b.msie) {
+				this.prefix = "-ms-";
+			} else if (b.mozilla) {
+				this.prefix = "-moz-";
+			} else if (b.opera) {
+				this.prefix = "-o-";
+			} else;
+			
 			// init event call
 			if (typeof this.args.events.init === "function") {
 				this.args.events.init.apply(null, [this.nowIndex]);
@@ -230,41 +242,42 @@
 			
 			switch (fx) {
 			case _effects.noAni:
-				this.ele.$unit.removeClass("ibr_fx*");
+			
 			default:
 				break;
 			case _effects.normal:
-				this.ele.$unit.removeClass("ibr_fx*").addClass("ibr_fx_normal");
-				
 				var margin = 10;
-								
+			
+				active = {
+					"top": _this.args.group.top,
+					"left": _this.args.group.left
+				};
+
 				switch (dir) {
 				case _direction.left:
 					ready = {
 						"top": _this.args.group.top,
-						"left": "",
-						"right": margin
-					};
-					active = {
-						"top": _this.args.group.top
-						"left": margin,
-						"right": ""
+						"left": ""
 					};
 					idle = {
-						"top": _this.args.group.top
-						"left": margin,
+						"top": _this.args.group.top,
 						"right": ""
 					};
 					break;
 				}
 
 				$active.each( function (i) {
-					//var w = _this.args.unit.width || $this.outerWidth(true);
-					$(this).css(idle).removeClass("ibr_active").addClass("ibr_idle");
+					var w = _this.args.unit.width || $(this).outerWidth(true);
+					$(this).removeClass("ibr_active").css(idle).css({
+						"left": _this.args.group.left + (w * i)
+					}).addClass("ibr_idle");
 				});
 				
 				$ready.each( function (i) {
-					$(this).css(active).removeClass("ibr_ready").addClass("ibr_active");;
+					var w = _this.args.unit.width || $(this).outerWidth(true);
+					$(this).removeClass("ibr_ready").css(active).css({
+						"left": _this.args.group.left + (w * i)
+					}).addClass("ibr_active");
 				});
 				
 				$idle.removeClass("ibr_idle");
@@ -274,7 +287,30 @@
 				break;
 			case _effects.fade:
 				break;
-			}			
+			}
+		},
+		// return new fx
+		"_newFx": function (fx) {
+			var defaultFx = {},
+				b = $.browser,
+				prefix = "";
+				
+			if (b.webkit || b.safari) {
+				prefix = "-webkit-";
+			} else if (b.msie) {
+				prefix = "-ms-";
+			} else if (b.mozilla) {
+				prefix = "-moz-";
+			} else if (b.opera) {
+				prefix = "-o-";
+			} else;
+			
+			defaultFx[prefix + "transition-property"] = "all";
+			defaultFx[prefix + "transition-duration"] = ".3s";
+			defaultFx[prefix + "transition-delay"] = "0";
+			defaultFx[prefix + "transition-timing-function"] = "linear";
+			
+			return _mergeProp(fx, defaultFx);
 		},
 		// 가장 넓은 unit의 width를 반환
 		"_maxWidth": function () {
