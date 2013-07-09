@@ -20,6 +20,13 @@
 		"down": -2
 	};
 	
+	_classdir = {
+		"1": "ibr_dir_left",
+		"-1": "ibr_dir_right",
+		"2": "ibr_dir_up",
+		"-2": "ibr_dir_down"
+	};
+	
 	_mergeProp = function (src, dest) {
 		if (src === undefined) {
 			return dest;
@@ -96,37 +103,7 @@
 			"$group": {},
 			"$unit": {}
 		};
-		
-		this.css = {
-			"mask": {
-				"overflow": "hidden"
-			},
-			"unit": {
-				"position": "absolute"
-			},
-			"pos_left": {
-				"top": 0,
-				"right": 0
-			},
-			"pos_right": {
-				"top": 0,
-				"right": 0
-			},
-			"pos_top": {
-				"top": 0,
-				"left": 0
-			},
-			"pos_bottom": {
-				"top": 0,
-				"bottom": 0
-			},
-			"pos_current": {
-				"top": 0,
-				"left": 0
-			}
-		};
-		
-		
+				
 		this.totalUnit = 0; // 총 unit 개 수
 		this.totalGroup = 0; // 총 group 개 수
 		this.sizeOfGroup = 0; // 총 group 당 unit 개 수
@@ -160,10 +137,10 @@
 	
 	_ibroller.prototype = {
 		"init": function () {
-			this.ele.$wrap = $(this.args.wrap).addClass("ibroller");
-			this.ele.$mask = $(this.args.mask).addClass("ibr_mask").css(this.css.mask);
+			this.ele.$wrap = $(this.args.wrap).addClass("ibroller").addClass(_classdir[this.args.play.direction]);
+			this.ele.$mask = $(this.args.mask).addClass("ibr_mask");
 			this.ele.$group = $(this.args.group.element).addClass("ibr_group");
-			this.ele.$unit = $(this.args.unit.element).addClass("ibr_unit").css(this.css.unit);
+			this.ele.$unit = $(this.args.unit.element).addClass("ibr_unit");
 			
 			this.sizeOfGroup = this.args.group.col * this.args.group.row;
 			this.totalUnit = this.ele.$unit.length;
@@ -176,6 +153,12 @@
 			this.maxIndex = Math.ceil(this.totalUnit / this.args.play.movingCnt) - 1; 
 			this.nowIndex = this.args.startIndex;
 			this.intervalTime = (this.args.play.intervalTime > this.minimumTime) ? this.args.play.intervalTime : this.minimumTime;
+			
+			// css init 적용
+
+			// css init를 설정하지 않으면 focus()를 대신 실행
+			
+			
 			this.focus(this.nowIndex);
 			
 			// css3 prefix
@@ -189,6 +172,8 @@
 			} else if (b.opera) {
 				this.prefix = "-o-";
 			} else;
+			
+			
 			
 			// init event call
 			if (typeof this.args.events.init === "function") {
@@ -216,101 +201,65 @@
 			this.focus(this.nowIndex, dir);
 		},
 		"focus": function (idx, dir) {
+			var _this = this;
 			if (idx !== undefined) this.nowIndex = idx;
-			for (var i = this.nowIndex * this.args.play.movingCnt, cnt = 0; i < this.totalUnit; i++) {
-				this.ele.$unit.eq(i).addClass("ibr_ready");
-				if (++cnt >= this.args.play.movingCnt) break;
+			
+			if (this.nowIndex < 0) {
+				this.nowIndex = this.maxIndex;
+			} else if (this.nowIndex > this.maxIndex) {
+				this.nowIndex = 0;
 			}
-			this._applyFx();
+			
+			
+			this._setState("ready", this.nowIndex, function (idx) {
+				_this._setState("active", idx, function (i) {
+					_this._setState("idle", i, function () {
+						
+					});
+					_this.focus(idx + 1);
+				});
+			});
 		},
-		"_applyFx": function (fx, dir) {
+		"_setState": function (state, idx, end) {
 			var _this = this,
-				fx = fx || this.args.play.fx,
-				dir = dir || this.args.play.direction,
-				$active = this.ele.$group.find(".ibr_active"),
-				$ready = this.ele.$group.find(".ibr_ready"),
-				$idle = this.ele.$group.find(".ibr_idle");
-			
-			if ($ready.length < 1) {
-				return;
-			}
-			
-			// "ready" -> "active" -> "idle"
-			var ready = {},
-				active = {},
-				idle = {};
-			
-			switch (fx) {
-			case _effects.noAni:
-			
-			default:
-				break;
-			case _effects.normal:
-				var margin = 10;
-			
-				active = {
-					"top": _this.args.group.top,
-					"left": _this.args.group.left
-				};
+				state = state || "ready",
+				idx = idx || this.nowIndex,
+				end = end || function () {},
+				cls = "",
+				cnt = 0,
+				timeout = 0,
+				maxtime = 0,
+				$item = {};
 
-				switch (dir) {
-				case _direction.left:
-					ready = {
-						"top": _this.args.group.top,
-						"left": ""
-					};
-					idle = {
-						"top": _this.args.group.top,
-						"right": ""
-					};
+			for (var i = idx * this.args.play.movingCnt; i < this.totalUnit; i++) {
+				$item = this.ele.$unit.eq(i);
+				
+				switch (state) {
+				case "ready":
+					cls = "ibr_ready ibr_r" + cnt;
+					break;
+				case "active":
+					cls = "ibr_active ibr_a" + cnt;
+					break;
+				case "idle":
+					cls = "ibr_idle ibr_i" + cnt;
 					break;
 				}
-
-				$active.each( function (i) {
-					var w = _this.args.unit.width || $(this).outerWidth(true);
-					$(this).removeClass("ibr_active").css(idle).css({
-						"left": _this.args.group.left + (w * i)
-					}).addClass("ibr_idle");
-				});
 				
-				$ready.each( function (i) {
-					var w = _this.args.unit.width || $(this).outerWidth(true);
-					$(this).removeClass("ibr_ready").css(active).css({
-						"left": _this.args.group.left + (w * i)
-					}).addClass("ibr_active");
-				});
+				$item.removeClass("ibr_ready ibr_active ibr_idle ibr_r" + cnt + " ibr_a" + cnt + " ibr_i" + cnt).addClass(cls);
 				
-				$idle.removeClass("ibr_idle");
+				maxtime = parseFloat($item.css("transition-duration")) + parseFloat($item.css("transition-delay"));
+				if (maxtime > timeout) {
+					timeout = maxtime;
+				}
 				
-				break;
-			case _effects.delayed:
-				break;
-			case _effects.fade:
-				break;
+				if (++cnt >= this.args.play.movingCnt) break;
 			}
-		},
-		// return new fx
-		"_newFx": function (fx) {
-			var defaultFx = {},
-				b = $.browser,
-				prefix = "";
-				
-			if (b.webkit || b.safari) {
-				prefix = "-webkit-";
-			} else if (b.msie) {
-				prefix = "-ms-";
-			} else if (b.mozilla) {
-				prefix = "-moz-";
-			} else if (b.opera) {
-				prefix = "-o-";
-			} else;
 			
-			defaultFx[prefix + "transition-property"] = "all";
-			defaultFx[prefix + "transition-duration"] = ".3s";
-			defaultFx[prefix + "transition-delay"] = "0";
-			defaultFx[prefix + "transition-timing-function"] = "linear";
+			window.setTimeout(function () {
+				end.apply(null, [idx]);
+			}, timeout * 1000);
 			
-			return _mergeProp(fx, defaultFx);
 		},
 		// 가장 넓은 unit의 width를 반환
 		"_maxWidth": function () {
