@@ -210,12 +210,9 @@
 				this.nowIndex = 0;
 			}
 			
-			
 			this._setState("ready", this.nowIndex, function (idx) {
 				_this._setState("active", idx, function (i) {
-					_this._setState("idle", i, function () {
-						
-					});
+					_this._setState("idle", i);
 					_this.focus(idx + 1);
 				});
 			});
@@ -259,7 +256,6 @@
 			window.setTimeout(function () {
 				end.apply(null, [idx]);
 			}, timeout * 1000);
-			
 		},
 		// 가장 넓은 unit의 width를 반환
 		"_maxWidth": function () {
