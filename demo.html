@@ -49,23 +49,10 @@
 			var args = {
 				"wrap": ".wrap",
 				"mask": ".mask",
-				"group": {
-					"element": ".group",
-					"row": 1,
-					"col": 3,
-					"top": 10,
-					"right": 10,
-					"bottom": 10,
-					"left": 10
-				},
-				"unit": {
-					"element": ".unit",
-					"width": 0,
-					"height": 0
-				},
+				"group": ".group",
+				"unit": ".unit",
 				"events": {
 					"init": function (index) {
-						
 					},
 					"focus": function (index) {
 					},
@@ -78,7 +65,6 @@
 				},
 				"play": {
 					"auto": false,
-					"fx": ibr.fx.normal,
 					"direction": ibr.dir.left,
 					"intervalTime": 3000,
 					"movingCnt": 3
