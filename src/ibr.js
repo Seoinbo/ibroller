@@ -47,6 +47,16 @@
 	};
 		
 	var _ibroller = function (args) {
+		if (typeof args.group === "string") {
+			args.group = {
+				"element": args.group
+			}
+		}
+		if (typeof args.unit === "string") {
+			args.unit = {
+				"element": args.unit
+			}
+		}
 		if (typeof args.play === "boolean") {
 			args.play = {
 				"auto": args.play
@@ -55,15 +65,14 @@
 		this.args = _mergeProp(args, {
 			"wrap": "",
 			"mask": "",
-			"group": "",
-			"unit": "",
-			"events": {
-				"init": function () {},
-				"focus": function () {},
-				"on": function () {},
-				"off": function () {},
-				"timeout": function () {}
+			"group": {
+				"element": "",
+				"count": 1
 			},
+			"unit": {
+				"element": ""
+			},
+			"startIndex": 0,
 			"play": {
 				"auto": false,
 				"direction": _direction.left,
@@ -71,7 +80,13 @@
 				"intervalTime": 3000,
 				"movingCnt": 1
 			},
-			"startIndex": 0
+			"events": {
+				"init": function () {},
+				"focus": function () {},
+				"on": function () {},
+				"off": function () {},
+				"timeout": function () {}
+			}
 		});
 		
 		this.ele = {
@@ -113,8 +128,9 @@
 		"init": function () {
 			this.ele.$wrap = $(this.args.wrap).addClass("ibroller");
 			this.ele.$mask = $(this.args.mask).addClass("ibr_mask");
-			this.ele.$group = $(this.args.group).addClass("ibr_group").addClass(this.args.play.moveto);
-			this.ele.$unit = $(this.args.unit).addClass("ibr_unit");
+			this.ele.$group = $(this.args.group.element).addClass("ibr_group").addClass(this.args.play.moveto);
+			this.ele.$unit = $(this.args.unit.element).addClass("ibr_unit");
+			this.totalGroup = Math.ceil(this.totalUnit / this.args.group.count);
 			this.totalUnit = this.ele.$unit.length;
 			
 			this.paused = !this.args.play.auto;
@@ -278,8 +294,6 @@
 				maxtime = 0,
 				$item = {};
 			
-
-			// 모든 엘리먼트에 상태를 적용한다
 			for (var i = idx * this.args.play.movingCnt; i < this.totalUnit; i++) {
 				$item = this.ele.$unit.eq(i);
 				
