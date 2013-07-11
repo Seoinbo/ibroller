@@ -295,6 +295,7 @@
 				$item = {};
 			
 			for (var i = idx * this.args.play.movingCnt; i < this.totalUnit; i++) {
+			
 				$item = this.ele.$unit.eq(i);
 				
 				switch (state) {
