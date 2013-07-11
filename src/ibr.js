@@ -85,6 +85,7 @@
 		this.maxIndex = 0;
 		this.activeIndex = 0;
 		this.paused = true;
+		this.noani = false;
 		this.intervalId = 0;
 		this.intervalTime = this.minimumTime;
 		this.minimumTime = 3000; // 최소 자동롤링 간격 (milliseconds)
@@ -123,18 +124,13 @@
 			this.currentMoveto = this.args.play.moveto;
 			this.intervalTime = (this.args.play.intervalTime > this.minimumTime) ? this.args.play.intervalTime : this.minimumTime;
 			
-			// css init 적용
-
-			// css init를 설정하지 않으면 focus()를 대신 실행
-			
-			
 			// attribues
 			this.ele.$wrap.attr({
 				"active-index": this.activeIndex,
 				"direction": this.currentDir
 			});
 			
-			this.focus(this.activeIndex);
+			this.initPosition(this.currentMoveto, this.activeIndex);
 			
 			// css3 prefix
 			var b = $.browser;
@@ -154,60 +150,136 @@
 			}
 		},
 		"next": function (dir) {
-			var dir = dir || this.args.play.direction;
-			this.focus(++this.activeIndex, _direction.left);
+			var dir = dir || this.currentDir,
+				moveto = _moveto.left;
+			
+			switch (dir) {
+			case _direction.left:
+			default:
+				moveto = _moveto.left;
+				break;
+			case _direction.right:
+				moveto = _moveto.right;
+				break;
+			case _direction.up:
+				moveto = _moveto.up;
+				break;
+			case _direction.down:
+				moveto = _moveto.down;
+				break;
+			}
+			// 방향전환에 따른 불필요한 애니메이션을 없애기 위해
+			if (moveto != this.currentMoveto) {
+				this.initPosition(moveto);
+			}
+			this.focus(this.activeIndex + 1);
 		},
 		"prev": function (dir) {
-			var dir = dir || this.args.play.direction;
-			this.focus(--this.activeIndex, dir);
-		},
-		"focus": function (idx, dir) {
-			var _this = this,
-				dir = dir || this.args.play.direction,
-				idx = idx || this.activeIndex,
-				prevIndex = this.ele.$wrap.attr("active-index");
+			var dir = dir || this.currentDir,
+				moveto = _moveto.left;
 			
-			if (idx < 0) {
-				this.activeIndex = this.maxIndex;
-			} else if (idx > this.maxIndex) {
-				this.activeIndex = 0;
+			switch (dir) {
+			case _direction.left:
+			default:
+				moveto = _moveto.right;
+				break;
+			case _direction.right:
+				moveto = _moveto.left;
+				break;
+			case _direction.up:
+				moveto = _moveto.down;
+				break;
+			case _direction.down:
+				moveto = _moveto.up;
+				break;
 			}
+			if (moveto != this.currentMoveto) {
+				this.initPosition(moveto);
+			}
+			this.focus(this.activeIndex - 1);
+		},
+		"focus": function (idx, noani) {
+			var _this = this,
+				noani = (noani === undefined) ? false : noani,
+				idx = this.setActiveIndex(idx);
 			
-			this._setState(_state.ready, this.activeIndex, function (nowIndex) {
+			this.setNoani(noani);
+			this._setState(_state.ready, idx, function (nowIndex) {
 				_this._setState(_state.active, nowIndex);
-				_this._setState(_state.idle, prevIndex);
+				_this._setState(_state.idle, _this.prevIndex);
 			});
+		},
+		"initPosition": function (moveto, idx) {
+			var _this = this,
+				dir = dir || this.currentDir,
+				idx = (idx === undefined) ? this.activeIndex : idx,
+				moveto = moveto || this.currentMoveto;
+			
+			this.setNoani(true);
+			this._moveto(moveto);
+			for (var i = 0; i <= this.maxIndex; i++) {
+				this._setState(_state.idle, i);
+			}
+			this._setState(_state.active, idx);
+			this.setActiveIndex(idx);
+			this.setNoani(false);
 		},
 		"direction": function (dir) {
 			if (dir === undefined) {
 				return this.currentDir;
 			}
-			this.ele.$group.removeClass(_moveto.left + " " + _moveto.right + " " + _moveto.up + " " + _moveto.down).addClass(dir);
+			this.ele.$wrap.attr("direction", dir);
 			this.currentDir = dir;
 		},
-		"moveTo": function (dir) {
-			if (dir === undefined) {
-				return this.currentDir;
+		"setNoani": function (noani) {
+			var noani = (noani === undefined) ? false : noani;
+			
+			if (noani == this.noani) {
+				return;
 			}
-			this.ele.$group.removeClass(_moveto.left + " " + _moveto.right + " " + _moveto.up + " " + _moveto.down).addClass(dir);
-			this.currentDir = dir;
+			
+			if (noani) {
+				this.ele.$unit.addClass("ibr_noani");
+			} else {
+				this.ele.$unit.removeClass("ibr_noani");
+			}
+			this.noani = noani;
+		},
+		"setActiveIndex": function (idx) {
+			if (idx === undefined) {
+				return this.activeIndex;
+			}
+			if (idx < 0) {
+				idx = this.maxIndex;
+			} else if (idx > this.maxIndex) {
+				idx = 0;
+			}
+			this.prevIndex = this.activeIndex;
+			this.activeIndex = idx;
+			this.ele.$wrap.attr("active-index", this.activeIndex);
+			
+			return this.activeIndex;
+		},
+		"_moveto": function (movedir) {
+			if (movedir === undefined) {
+				return this.currentMoveto;
+			}
+			this.ele.$group.removeClass(_moveto.left + " " + _moveto.right + " " + _moveto.up + " " + _moveto.down).addClass(movedir);
+			this.currentMoveto = movedir;
 		},
 		"_setState": function (state, idx, end) {
 			var _this = this,
 				state = state || _state.ready,
-				idx = idx || this.activeIndex,
+				idx = (idx === undefined) ? 0 : idx,
 				end = end || function () {},
 				cls = "",
 				cnt = 0,
 				timeout = 0,
 				maxtime = 0,
 				$item = {};
-				
-			// set active index
-			if (state == _state.active) {
-				this.ele.$wrap.attr("active-index", idx);
-			}
+			
 
+			// 모든 엘리먼트에 상태를 적용한다
 			for (var i = idx * this.args.play.movingCnt; i < this.totalUnit; i++) {
 				$item = this.ele.$unit.eq(i);
 				
