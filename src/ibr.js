@@ -24,26 +24,46 @@
 		"idle": "ibr_idle"
 	}
 	
-	_mergeProp = function (src, dest) {
-		if (src === undefined) {
+	_fn = {
+		"mergeProp": function (src, dest) {
+			if (src === undefined) {
+				return dest;
+			}
+			if (dest === undefined) {
+				dest = {};
+			}
+			for (var key in src) {
+				if (!src.hasOwnProperty(key)) {
+					continue;
+				}
+				if (src[key] === undefined) {
+					continue;
+				} else if (src[key].constructor == Object) {
+					_fn.mergeProp(src[key], dest[key]);
+				} else {
+					dest[key] = src[key];
+				}
+			}
 			return dest;
-		}
-		if (dest === undefined) {
-			dest = {};
-		}
-		for (var key in src) {
-			if (!src.hasOwnProperty(key)) {
-				continue;
+		},
+		"filterClass": function (classes, regexp, except) {
+			if (classes === undefined) {
+				return "";
 			}
-			if (src[key] === undefined) {
-				continue;
-			} else if (src[key].constructor == Object) {
-				_mergeProp(src[key], dest[key]);
-			} else {
-				dest[key] = src[key];
+			var result = "",
+				arrClass = classes.split(' '),
+				except = except || [];
+			for(var i = 0; i < arrClass.length; i++) {
+				if(!regexp.test(arrClass[i]) || except.indexOf(arrClass[i]) != -1) {
+					if (i > 0) {
+						result += " " + arrClass[i];
+	         		} else {
+	         			result += arrClass[i];
+	         		}	
+				}
 			}
+			return result;
 		}
-		return dest;
 	};
 		
 	var _ibroller = function (args) {
@@ -62,7 +82,7 @@
 				"auto": args.play
 			}
 		}
-		this.args = _mergeProp(args, {
+		this.args = _fn.mergeProp(args, {
 			"wrap": "",
 			"mask": "",
 			"group": {
@@ -98,7 +118,7 @@
 				
 		this.totalUnit = 0; // 총 unit 개 수
 		this.maxIndex = 0;
-		this.activeIndex = 0;
+		this.nowIndex = 0;
 		this.paused = true;
 		this.noani = false;
 		this.intervalId = 0;
@@ -135,18 +155,18 @@
 			
 			this.paused = !this.args.play.auto;
 			this.maxIndex = Math.ceil(this.totalUnit / this.args.play.movingCnt) - 1; 
-			this.activeIndex = this.args.startIndex;
+			this.nowIndex = this.args.startIndex;
 			this.currentDir = this.args.play.direction;
 			this.currentMoveto = this.args.play.moveto;
 			this.intervalTime = (this.args.play.intervalTime > this.minimumTime) ? this.args.play.intervalTime : this.minimumTime;
 			
 			// attribues
 			this.ele.$wrap.attr({
-				"active-index": this.activeIndex,
+				"index": this.nowIndex,
 				"direction": this.currentDir
 			});
 			
-			this.initPosition(this.currentMoveto, this.activeIndex);
+			this.initPosition(this.currentMoveto, this.nowIndex);
 			
 			// css3 prefix
 			var b = $.browser;
@@ -162,7 +182,7 @@
 			
 			// init event call
 			if (typeof this.args.events.init === "function") {
-				this.args.events.init.apply(null, [this.activeIndex]);
+				this.args.events.init.apply(null, [this.nowIndex]);
 			}
 		},
 		"next": function (dir) {
@@ -188,7 +208,7 @@
 			if (moveto != this.currentMoveto) {
 				this.initPosition(moveto);
 			}
-			this.focus(this.activeIndex + 1);
+			this.focus(this.nowIndex + 1);
 		},
 		"prev": function (dir) {
 			var dir = dir || this.currentDir,
@@ -212,23 +232,23 @@
 			if (moveto != this.currentMoveto) {
 				this.initPosition(moveto);
 			}
-			this.focus(this.activeIndex - 1);
+			this.focus(this.nowIndex - 1);
 		},
 		"focus": function (idx, noani) {
 			var _this = this,
 				noani = (noani === undefined) ? false : noani,
-				idx = this.setActiveIndex(idx);
+				idx = this.setNowIndex(idx);
 			
 			this.setNoani(noani);
 			this._setState(_state.ready, idx, function (nowIndex) {
-				_this._setState(_state.active, nowIndex);
 				_this._setState(_state.idle, _this.prevIndex);
+				_this._setState(_state.active, nowIndex);
 			});
 		},
 		"initPosition": function (moveto, idx) {
 			var _this = this,
 				dir = dir || this.currentDir,
-				idx = (idx === undefined) ? this.activeIndex : idx,
+				idx = (idx === undefined) ? this.nowIndex : idx,
 				moveto = moveto || this.currentMoveto;
 			
 			this.setNoani(true);
@@ -237,7 +257,7 @@
 				this._setState(_state.idle, i);
 			}
 			this._setState(_state.active, idx);
-			this.setActiveIndex(idx);
+			this.setNowIndex(idx);
 			this.setNoani(false);
 		},
 		"direction": function (dir) {
@@ -261,20 +281,20 @@
 			}
 			this.noani = noani;
 		},
-		"setActiveIndex": function (idx) {
+		"setNowIndex": function (idx) {
 			if (idx === undefined) {
-				return this.activeIndex;
+				return this.nowIndex;
 			}
 			if (idx < 0) {
 				idx = this.maxIndex;
 			} else if (idx > this.maxIndex) {
 				idx = 0;
 			}
-			this.prevIndex = this.activeIndex;
-			this.activeIndex = idx;
-			this.ele.$wrap.attr("active-index", this.activeIndex);
+			this.prevIndex = this.nowIndex;
+			this.nowIndex = idx;
+			this.ele.$wrap.attr("index", this.nowIndex);
 			
-			return this.activeIndex;
+			return this.nowIndex;
 		},
 		"_moveto": function (movedir) {
 			if (movedir === undefined) {
@@ -284,6 +304,100 @@
 			this.currentMoveto = movedir;
 		},
 		"_setState": function (state, idx, end) {
+			var _this = this,
+				state = state || _state.ready,
+				idx = (idx === undefined) ? 0 : idx,
+				end = end || function () {},
+				cls = "",
+				cnt = 0,
+				snum = 0,
+				timeout = 0,
+				maxtime = 0,
+				$item = {};
+			
+			
+			
+			var s = idx * this.args.play.movingCnt, 
+				e = s + this.args.group.count, 
+				i = s,
+				n = 0;
+			for (; i < e; i++, n++) {
+				$item = this.ele.$unit.eq(i);
+				
+				switch (state) {
+				case _state.ready:
+					
+					switch (this.currentMoveto) {
+					case _moveto.left:
+					default:
+						if (i >= this.totalUnit) {
+							$item = this.ele.$unit.eq(i - this.totalUnit);
+						}
+						break;
+					case _moveto.right:
+					
+						break;
+					case _moveto.up:
+						break;
+					case _moveto.down:
+						break;
+					}
+					
+					if ($item.hasClass("ibr_active")) {
+						continue;
+					}
+					
+					cls = "ibr_ready ibr_r" + n;
+					break;
+					
+				case _state.active:
+					if (i >= this.totalUnit) {
+						$item = this.ele.$unit.eq(i - this.totalUnit);
+					}
+					cls = "ibr_active ibr_a" + n;
+					break;
+					
+				case _state.idle:
+					switch (this.currentMoveto) {
+					case _moveto.left:
+					default:
+						if (n >= this.args.play.movingCnt) {
+							continue;
+						}
+						break;
+					case _moveto.right:
+						if (n < (this.args.group.count - this.args.play.movingCnt)) {
+							continue;
+						} else if (i >= this.totalUnit) {
+							$item = this.ele.$unit.eq(i - this.totalUnit);
+						}
+						break;
+					case _moveto.up:
+						break;
+					case _moveto.down:
+						break;
+					}
+					
+					cls = "ibr_idle ibr_i" + n;
+					break;
+				}
+				
+				$cleanClass = _fn.filterClass($item.attr("class"), /ibr_*/, ["ibr_unit", "ibr_noani"]);
+				$item.attr("class", $cleanClass).addClass(cls);
+				
+				maxtime = parseFloat($item.css("transition-duration")) + parseFloat($item.css("transition-delay"));
+				if (maxtime > timeout) {
+					timeout = maxtime;
+				}
+			}
+			
+			
+			
+			window.setTimeout(function () {
+				end.apply(null, [idx]);
+			}, timeout * 1000);
+		},
+		"_setState2": function (state, idx, end) {
 			var _this = this,
 				state = state || _state.ready,
 				idx = (idx === undefined) ? 0 : idx,
@@ -327,6 +441,7 @@
 	};
 	
 	window.ibr = _ibroller;
+	window.ibr.fn = _fn;
 	window.ibr.dir = _direction;
 	window.ibr.move = _moveto;
 	
