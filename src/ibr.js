@@ -5,10 +5,8 @@
 ;(function (window, $, undefined) {
 	
 	_direction = {
-		"left": "right-to-left",
-		"right": "left-to-right",
-		"up": "down-to-up",
-		"down": "up-to-down"
+		"hor": "right-to-left",
+		"ver": "down-to-up"
 	};
 	
 	_moveto = {
@@ -95,7 +93,7 @@
 			"startIndex": 0,
 			"play": {
 				"auto": false,
-				"direction": _direction.left,
+				"direction": _direction.hor,
 				"moveto": _moveto.left,
 				"intervalTime": 3000,
 				"movingCnt": 1
@@ -190,17 +188,11 @@
 				moveto = _moveto.left;
 			
 			switch (dir) {
-			case _direction.left:
+			case _direction.hor:
 			default:
 				moveto = _moveto.left;
 				break;
-			case _direction.right:
-				moveto = _moveto.right;
-				break;
-			case _direction.up:
-				moveto = _moveto.up;
-				break;
-			case _direction.down:
+			case _direction.ver:
 				moveto = _moveto.down;
 				break;
 			}
@@ -215,17 +207,11 @@
 				moveto = _moveto.left;
 			
 			switch (dir) {
-			case _direction.left:
+			case _direction.hor:
 			default:
 				moveto = _moveto.right;
 				break;
-			case _direction.right:
-				moveto = _moveto.left;
-				break;
-			case _direction.up:
-				moveto = _moveto.down;
-				break;
-			case _direction.down:
+			case _direction.ver:
 				moveto = _moveto.up;
 				break;
 			}
@@ -309,57 +295,30 @@
 				idx = (idx === undefined) ? 0 : idx,
 				end = end || function () {},
 				cls = "",
-				cnt = 0,
-				snum = 0,
 				timeout = 0,
 				maxtime = 0,
 				$item = {};
 			
-			
-			
 			var s = idx * this.args.play.movingCnt, 
-				e = s + this.args.group.count, 
+				e = s + this.args.group.count,
 				i = s,
 				n = 0;
 			for (; i < e; i++, n++) {
-				$item = this.ele.$unit.eq(i);
+				if (i >= this.totalUnit) {
+					$item = this.ele.$unit.eq(i - this.totalUnit);
+				} else {
+					$item = this.ele.$unit.eq(i);
+				}
 				
 				switch (state) {
 				case _state.ready:
-					
-					switch (this.currentMoveto) {
-					case _moveto.left:
-					default:
-						if (i >= this.totalUnit) {
-							$item = this.ele.$unit.eq(i - this.totalUnit);
-						}
-						break;
-					case _moveto.right:
-						break;
-					case _moveto.up:
-						if (i >= this.totalUnit) {
-							$item = this.ele.$unit.eq(i - this.totalUnit);
-						}
-						break;
-					case _moveto.down:
-						if (i >= this.totalUnit) {
-							$item = this.ele.$unit.eq(i - this.totalUnit);
-						}
-						break;
-						break;
-					}
-					
 					if ($item.hasClass("ibr_active")) {
 						continue;
 					}
-					
 					cls = "ibr_ready ibr_r" + n;
 					break;
 					
 				case _state.active:
-					if (i >= this.totalUnit) {
-						$item = this.ele.$unit.eq(i - this.totalUnit);
-					}
 					cls = "ibr_active ibr_a" + n;
 					break;
 					
@@ -375,16 +334,9 @@
 					case _moveto.up:
 						if (n < (this.args.group.count - this.args.play.movingCnt)) {
 							continue;
-						} else if (i >= this.totalUnit) {
-							$item = this.ele.$unit.eq(i - this.totalUnit);
 						}
 						break;
-					
-						break;
-					case _moveto.down:
-						break;
 					}
-					
 					cls = "ibr_idle ibr_i" + n;
 					break;
 				}
@@ -396,49 +348,6 @@
 				if (maxtime > timeout) {
 					timeout = maxtime;
 				}
-			}
-			
-			
-			
-			window.setTimeout(function () {
-				end.apply(null, [idx]);
-			}, timeout * 1000);
-		},
-		"_setState2": function (state, idx, end) {
-			var _this = this,
-				state = state || _state.ready,
-				idx = (idx === undefined) ? 0 : idx,
-				end = end || function () {},
-				cls = "",
-				cnt = 0,
-				timeout = 0,
-				maxtime = 0,
-				$item = {};
-			
-			for (var i = idx * this.args.play.movingCnt; i < this.totalUnit; i++) {
-			
-				$item = this.ele.$unit.eq(i);
-				
-				switch (state) {
-				case _state.ready:
-					cls = "ibr_ready ibr_r" + cnt;
-					break;
-				case _state.active:
-					cls = "ibr_active ibr_a" + cnt;
-					break;
-				case _state.idle:
-					cls = "ibr_idle ibr_i" + cnt;
-					break;
-				}
-				
-				$item.removeClass("ibr_ready ibr_active ibr_idle ibr_r" + cnt + " ibr_a" + cnt + " ibr_i" + cnt).addClass(cls);
-				
-				maxtime = parseFloat($item.css("transition-duration")) + parseFloat($item.css("transition-delay"));
-				if (maxtime > timeout) {
-					timeout = maxtime;
-				}
-				
-				if (++cnt >= this.args.play.movingCnt) break;
 			}
 			
 			window.setTimeout(function () {
