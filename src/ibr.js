@@ -335,11 +335,17 @@
 						}
 						break;
 					case _moveto.right:
-					
 						break;
 					case _moveto.up:
+						if (i >= this.totalUnit) {
+							$item = this.ele.$unit.eq(i - this.totalUnit);
+						}
 						break;
 					case _moveto.down:
+						if (i >= this.totalUnit) {
+							$item = this.ele.$unit.eq(i - this.totalUnit);
+						}
+						break;
 						break;
 					}
 					
@@ -366,13 +372,14 @@
 						}
 						break;
 					case _moveto.right:
+					case _moveto.up:
 						if (n < (this.args.group.count - this.args.play.movingCnt)) {
 							continue;
 						} else if (i >= this.totalUnit) {
 							$item = this.ele.$unit.eq(i - this.totalUnit);
 						}
 						break;
-					case _moveto.up:
+					
 						break;
 					case _moveto.down:
 						break;
