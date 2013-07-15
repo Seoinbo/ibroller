@@ -3,7 +3,7 @@
 // since: 2013.07.06
 //
 ;(function (window, $, undefined) {
-	
+
 	_direction = {
 		"hor": "right-to-left",
 		"ver": "down-to-up"
@@ -46,6 +46,9 @@
 		},
 		"filterClass": function (classes, regexp, except) {
 			if (classes === undefined) {
+				return "";
+			}
+			if (regexp === undefined) {
 				return "";
 			}
 			var result = "",
@@ -325,7 +328,6 @@
 				case _state.idle:
 					switch (this.currentMoveto) {
 					case _moveto.left:
-					default:
 						if (n >= this.args.play.movingCnt) {
 							continue;
 						}
