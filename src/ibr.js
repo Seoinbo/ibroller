@@ -64,6 +64,12 @@
 				}
 			}
 			return result;
+		},
+		// return milliseconds
+		// - selector: jQuery selector
+		"getTransitionTime": function (selector) {
+			var $item = $(selector);
+			return (parseFloat($item.css("transition-duration")) + parseFloat($item.css("transition-delay"))) * 1000;
 		}
 	};
 		
@@ -104,8 +110,10 @@
 			"events": {
 				"init": function () {},
 				"focus": function () {},
-				"on": function () {},
-				"off": function () {},
+				"play": function () {},
+				"stop": function () {},
+				"pause": function () {},
+				"resume": function () {},
 				"timeout": function () {}
 			}
 		});
@@ -123,8 +131,6 @@
 		this.paused = true;
 		this.noani = false;
 		this.intervalId = 0;
-		this.intervalTime = this.minimumTime;
-		this.minimumTime = 3000; // 최소 자동롤링 간격 (milliseconds)
 		
 		// 초기화
 		this.init();
@@ -132,14 +138,14 @@
 		// 엘리먼트 속성 적용
 		var _this = this;
 		this.ele.$wrap.mouseover( function () {
-			_this.paused = true;
+			_this.pause();
 		}).mouseout( function () {
-			_this.paused = false;
+			_this.resume();
 		});
 		
 		// autoplay
 		if (this.args.play.auto) {
-			this.on(this.args.play.direction, this.args.play.fx);
+			this.play();
 		}
 		
 		return this;
@@ -159,7 +165,6 @@
 			this.nowIndex = this.args.startIndex;
 			this.currentDir = this.args.play.direction;
 			this.currentMoveto = this.args.play.moveto;
-			this.intervalTime = (this.args.play.intervalTime > this.minimumTime) ? this.args.play.intervalTime : this.minimumTime;
 			
 			// attribues
 			this.ele.$wrap.attr({
@@ -184,6 +189,47 @@
 			// init event call
 			if (typeof this.args.events.init === "function") {
 				this.args.events.init.apply(null, [this.nowIndex]);
+			}
+		},
+		"play": function () {
+			this.intervalId = window.setTimeout( function (_this) {
+				return function () {
+					_this.next();
+					_this.play();
+				};
+				if (typeof _this.args.events.timeout === "function") {
+					_this.args.events.timeout.apply(null, [_this.nowIndex]);
+				}
+			}(this), this.args.play.intervalTime);
+			
+			this.stopped = false;
+			
+			if (typeof this.args.events.play === "function") {
+				this.args.events.play.apply(null, [this.nowIndex]);
+			}
+		},
+		"stop": function () {
+			this.pause();
+			this.stopped = true;
+			
+			if (typeof this.args.events.stop === "function") {
+				this.args.events.stop.apply(null, [this.nowIndex]);
+			}
+		},
+		"pause": function () {
+			window.clearTimeout(this.intervalId);
+			
+			if (typeof this.args.events.pause === "function") {
+				this.args.events.pause.apply(null, [this.nowIndex]);
+			}
+		},
+		"resume": function () {
+			if (!this.stopped) {
+				this.play();
+			}
+			
+			if (typeof this.args.events.resume === "function") {
+				this.args.events.resume.apply(null, [this.nowIndex]);
 			}
 		},
 		"next": function (dir) {
@@ -233,6 +279,10 @@
 				_this._setState(_state.idle, _this.prevIndex);
 				_this._setState(_state.active, nowIndex);
 			});
+			
+			if (typeof this.args.events.focus === "function") {
+				this.args.events.focus.apply(null, [this.nowIndex]);
+			}
 		},
 		"initPosition": function (moveto, idx) {
 			var _this = this,
