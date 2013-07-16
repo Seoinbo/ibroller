@@ -21,13 +21,16 @@
 			.mask li {list-style:none;}
 			.unit {width:160px; height:240px; margin:5px; border: 1px solid #000;}
 			.unit img {width:100%; height:100%;}
+			.unit2 {width:475px; height:180px; margin:5px; border: 1px solid #000;}
+			.unit2 img {width:100%; height:100%;}
 			.btn {position:absolute; top:120px; padding:10px 15px 10px 10px; background:#2F2F36;}
 			.btn a {}
 			.num {position:absolute; background:#000; padding:10px;}
+			
 	    </style>
     </head>
     <body>
-    	<div class="wrap">
+    	<div class="wrap tpl1">
 	         <div class="mask">
 	             <ul class="group">
 	                 <li class="unit"><div class="num">0</div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=4384460&type=14"></li>
@@ -45,11 +48,11 @@
 	                 <li class="unit"><div class="num">12</div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=4356896&type=14"></li>
 		           </ul>
 	         </div>
-	         <div class="btn" style="border-radius:0 25px 25px 0;"><a href="javascript:;" onclick="ibroller.prev(); return false;">< 이전</a></div>
-	         <div class="btn" style="border-radius:25px 0 0 25px; right:0"><a href="javascript:;" onclick="ibroller.next(); return false;">다음 ></a></div>
+	         <div class="btn" style="border-radius:0 25px 25px 0;"><a href="javascript:;" onclick="ibr1.prev(); return false;">< 이전</a></div>
+	         <div class="btn" style="border-radius:25px 0 0 25px; right:0"><a href="javascript:;" onclick="ibr1.next(); return false;">다음 ></a></div>
 			<script>
 			var args = {
-				"wrap": ".wrap",
+				"wrap": ".tpl1",
 				"mask": ".mask",
 				"group": {
 					"element": ".group",
@@ -58,9 +61,60 @@
 				"unit": ".unit",
 				"startIndex": 0,
 				"play": {
+					"auto": false,
+					"direction": ibr.dir.hor,
+					"intervalTime": 3500,
+					"movingCnt": 3
+				},
+				"events": {
+					"init": function (index) {
+					},
+					"focus": function (index) {
+					},
+					"play": function (index) {
+					},
+					"pause": function (index) {
+					},
+					"timeout": function (t) {
+					}
+				}
+			};
+			var ibr1 = new ibr(args);
+			</script>
+		</div>
+		
+		
+		
+		
+		
+		
+    	<div class="wrap tpl2" style="width:800px; height:230px; background:-webkit-linear-gradient(90deg, rgba(0, 0, 0, 0) 10%, rgba(30, 30, 35, 1) 100%);">
+	         <div class="mask">
+	             <ul class="group">
+	                 <li class="unit2"><div class="num">0</div><div class="grad"></div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6710802&type=14"></li>
+	                 <li class="unit2"><div class="num">1</div><div class="grad"></div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6714624&type=14"></li>
+	                 <li class="unit2"><div class="num">2</div><div class="grad"></div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6712805&type=14"></li>
+	                 <li class="unit2"><div class="num">3</div><div class="grad"></div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6717155&type=14"></li>
+	                 <li class="unit2"><div class="num">4</div><div class="grad"></div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6714560&type=14"></li>
+	                 <li class="unit2"><div class="num">5</div><div class="grad"></div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6720122&type=14"></li>
+		           </ul>
+	         </div>
+	         <div class="btn" style="top:240px; border-radius:0 25px 25px 0; z-index:200;"><a href="javascript:;" onclick="ibr2.prev(); return false;">< 이전</a></div>
+	         <div class="btn" style="top:240px; border-radius:25px 0 0 25px; right:0; z-index:200;"><a href="javascript:;" onclick="ibr2.next(); return false;">다음 ></a></div>
+			<script>
+			var args = {
+				"wrap": ".tpl2",
+				"mask": ".mask",
+				"group": {
+					"element": ".group",
+					"count": 3
+				},
+				"unit": ".unit2",
+				"startIndex": 0,
+				"play": {
 					"auto": true,
 					"direction": ibr.dir.hor,
-					"intervalTime": 3000,
+					"intervalTime": 5000,
 					"movingCnt": 1
 				},
 				"events": {
@@ -76,7 +130,62 @@
 					}
 				}
 			};
-			var ibroller = new ibr(args);
+			var ibr2 = new ibr(args);
+			</script>
+		</div>
+		
+		
+		
+		
+		
+		
+    	<div class="wrap tpl3" style="width:510px; height:500px; background:#2F2F36">
+	         <div class="mask">
+	             <ul class="group">
+	                 <li class="unit2"><div class="num">0</div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6710802&type=14"></li>
+	                 <li class="unit2"><div class="num">1</div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6714624&type=14"></li>
+	                 <li class="unit2"><div class="num">2</div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6712805&type=14"></li>
+	                 <li class="unit2"><div class="num">3</div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6717155&type=14"></li>
+	                 <li class="unit2"><div class="num">4</div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6714560&type=14"></li>
+	                 <li class="unit2"><div class="num">5</div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6720122&type=14"></li>
+	                 <li class="unit2"><div class="num">6</div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6710802&type=14"></li>
+	                 <li class="unit2"><div class="num">7</div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6714624&type=14"></li>
+	                 <li class="unit2"><div class="num">8</div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6712805&type=14"></li>
+	                 <li class="unit2"><div class="num">9</div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6717155&type=14"></li>
+	                 <li class="unit2"><div class="num">10</div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6714560&type=14"></li>
+	                 <li class="unit2"><div class="num">11</div><img src="http://chi.gomtv.com/cgi-bin/imgview.cgi?nid=6720122&type=14"></li>
+		           </ul>
+	         </div>
+			<script>
+			var args = {
+				"wrap": ".tpl3",
+				"mask": ".mask",
+				"group": {
+					"element": ".group",
+					"count": 5
+				},
+				"unit": ".unit2",
+				"startIndex": 0,
+				"play": {
+					"auto": true,
+					"direction": ibr.dir.ver,
+					"intervalTime": 1500,
+					"movingCnt": 1
+				},
+				"events": {
+					"init": function (index) {
+					},
+					"focus": function (index) {
+					},
+					"play": function (index) {
+					},
+					"pause": function (index) {
+					},
+					"timeout": function (t) {
+					}
+				}
+			};
+			var ibr3 = new ibr(args);
 			</script>
 		</div>
     </body>

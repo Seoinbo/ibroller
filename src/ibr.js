@@ -129,6 +129,7 @@
 		this.maxIndex = 0;
 		this.nowIndex = 0;
 		this.paused = true;
+		this.stopped = true;
 		this.noani = false;
 		this.intervalId = 0;
 		
@@ -154,13 +155,13 @@
 	_ibroller.prototype = {
 		"init": function () {
 			this.ele.$wrap = $(this.args.wrap).addClass("ibroller");
-			this.ele.$mask = $(this.args.mask).addClass("ibr_mask");
-			this.ele.$group = $(this.args.group.element).addClass("ibr_group").addClass(this.args.play.moveto);
-			this.ele.$unit = $(this.args.unit.element).addClass("ibr_unit");
+			this.ele.$mask = this.ele.$wrap.find(this.args.mask).addClass("ibr_mask");
+			this.ele.$group = this.ele.$wrap.find(this.args.group.element).addClass("ibr_group").addClass(this.args.play.moveto);
+			this.ele.$unit = this.ele.$wrap.find(this.args.unit.element).addClass("ibr_unit");
 			this.totalGroup = Math.ceil(this.totalUnit / this.args.group.count);
 			this.totalUnit = this.ele.$unit.length;
 			
-			this.paused = !this.args.play.auto;
+			this.stopped = !this.args.play.auto;
 			this.maxIndex = Math.ceil(this.totalUnit / this.args.play.movingCnt) - 1; 
 			this.nowIndex = this.args.startIndex;
 			this.currentDir = this.args.play.direction;
