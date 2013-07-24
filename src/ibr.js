@@ -157,9 +157,9 @@ if (!Array.prototype.indexOf) {
 		
 		// 엘리먼트 속성 적용
 		var _this = this;
-		this.ele.$wrap.mouseover( function () {
+		this.ele.$wrap.bind("mouseenter", function () {
 			_this.pause();
-		}).mouseout( function () {
+		}).bind("mouseleave", function () {
 			_this.resume();
 		});
 		
