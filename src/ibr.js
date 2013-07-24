@@ -151,7 +151,7 @@ if (!Array.prototype.indexOf) {
 		this.stopped = true;
 		this.noani = false;
 		this.intervalId = 0;
-		
+
 		// 초기화
 		this.init();
 		
@@ -179,6 +179,11 @@ if (!Array.prototype.indexOf) {
 			this.ele.$unit = this.ele.$wrap.find(this.args.unit.element).addClass("ibr_unit");
 			this.totalGroup = Math.ceil(this.totalUnit / this.args.group.count);
 			this.totalUnit = this.ele.$unit.length;
+			
+			// movingCnt를 적용 할 만큼 적당한 unit이 없을 경우
+			if (this.args.play.movingCnt < 1 || this.totalUnit < this.args.group.count + this.args.play.movingCnt) {
+				this.args.play.movingCnt = 1;
+			}
 			
 			this.stopped = !this.args.play.auto;
 			this.maxIndex = Math.ceil(this.totalUnit / this.args.play.movingCnt) - 1; 
@@ -290,6 +295,10 @@ if (!Array.prototype.indexOf) {
 			this.focus(this.nowIndex - 1);
 		},
 		"focus": function (idx, noani) {
+			// 화면에 노출되는 개수가 전체 개수 미만일 경우 동작하지 않도록
+			if (this.totalUnit <= this.args.group.count) {
+				return;
+			}
 			var _this = this,
 				noani = (noani === undefined) ? false : noani,
 				idx = this.setNowIndex(idx);
