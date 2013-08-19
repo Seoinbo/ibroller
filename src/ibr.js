@@ -217,6 +217,9 @@ if (!Array.prototype.indexOf) {
 			}
 		},
 		"play": function () {
+			if (this.intervalId) {
+				window.clearTimeout(this.intervalId);
+			}
 			this.intervalId = window.setTimeout( function (_this) {
 				return function () {
 					_this.next();
@@ -270,11 +273,7 @@ if (!Array.prototype.indexOf) {
 				moveto = _moveto.down;
 				break;
 			}
-			// 방향전환에 따른 불필요한 애니메이션을 없애기 위해
-			if (moveto != this.currentMoveto) {
-				this.initPosition(moveto);
-			}
-			this.focus(this.nowIndex + 1);
+			this.focus(+this.nowIndex + 1, moveto);
 		},
 		"prev": function (dir) {
 			var dir = dir || this.currentDir,
@@ -289,16 +288,20 @@ if (!Array.prototype.indexOf) {
 				moveto = _moveto.up;
 				break;
 			}
-			if (moveto != this.currentMoveto) {
-				this.initPosition(moveto);
-			}
-			this.focus(this.nowIndex - 1);
+			this.focus(+this.nowIndex - 1, moveto);
 		},
-		"focus": function (idx, noani) {
+		"focus": function (idx, moveto, noani) {
 			// 화면에 노출되는 개수가 전체 개수 미만일 경우 동작하지 않도록
 			if (this.totalUnit <= this.args.group.count) {
 				return;
 			}
+			
+			// 방향 설정;
+			var moveto = moveto || _moveto.left;
+			if (moveto != this.currentMoveto) {
+				this.initPosition(moveto); // 방향전환에 따른 불필요한 애니메이션을 없애기 위해
+			}
+			
 			var _this = this,
 				noani = (noani === undefined) ? false : noani,
 				idx = this.setNowIndex(idx);
@@ -307,11 +310,12 @@ if (!Array.prototype.indexOf) {
 			this._setState(_state.ready, idx, function (nowIndex) {
 				_this._setState(_state.idle, _this.prevIndex);
 				_this._setState(_state.active, nowIndex);
+				
+				// focus event
+				if (typeof _this.args.events.focus === "function") {
+					_this.args.events.focus.apply(null, [_this.nowIndex]);
+				}
 			});
-			
-			if (typeof this.args.events.focus === "function") {
-				this.args.events.focus.apply(null, [this.nowIndex]);
-			}
 		},
 		"initPosition": function (moveto, idx) {
 			var _this = this,
