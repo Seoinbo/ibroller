@@ -1,3 +1,4 @@
+/*test*/
 .tpl1 .ibr_move_left .ibr_ready {transition:none; -webkit-transition:none; -ms-transition:none; -moz-transition:none;}
 .tpl1 .ibr_move_left .ibr_r0 {top:10px; left:545px;}
 .tpl1 .ibr_move_left .ibr_r1 {top:10px; left:715px;}
@@ -244,4 +245,3 @@
 	-webkit-transition:all .6s; 
 }
 .tpl3 .ibr_move_down .ibr_i0 {top:-260px; left:50px; width:396px; height:150px;}
-
