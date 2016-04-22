@@ -1,6 +1,12 @@
 //
 // # ibRoller2
 // since: 2013.07.06
+// version 1.0.4
+//
+// [history]
+// - 2016.04.22. jQuery1.9 이상에서 jQuery.browser()가 deprecated된 것에 대한 처리.
+// - 2013.12.05. 'endless' 옵션 추가.
+// - 2013.12.05. 'onChangeState' 이벤트 추가.
 //
 
 // The indexOf() method is not supported in Internet Explorer 8 and earlier.
@@ -79,7 +85,7 @@ if (!Array.prototype.indexOf) {
 						result += " " + arrClass[i];
 	         		} else {
 	         			result += arrClass[i];
-	         		}	
+					}
 				}
 			}
 			return result;
@@ -87,7 +93,14 @@ if (!Array.prototype.indexOf) {
 		// return milliseconds
 		// - selector: jQuery selector
 		"getTransitionTime": function (selector) {
-			var $item = $(selector);
+			var $item = $(selector),
+				dur = $item.css("transition-duration"),
+				delay = $item.css("transition-delay");
+			
+			if (dur === undefined || delay === undefined) {
+				return 0;
+			}
+			
 			return (parseFloat($item.css("transition-duration")) + parseFloat($item.css("transition-delay"))) * 1000;
 		}
 	};
@@ -119,6 +132,7 @@ if (!Array.prototype.indexOf) {
 				"element": ""
 			},
 			"startIndex": 0,
+			"endless": true,
 			"play": {
 				"auto": false,
 				"direction": _direction.hor,
@@ -133,7 +147,8 @@ if (!Array.prototype.indexOf) {
 				"stop": function () {},
 				"pause": function () {},
 				"resume": function () {},
-				"timeout": function () {}
+				"timeout": function () {},
+				"onChangeState": function () {}
 			}
 		});
 		
@@ -151,6 +166,7 @@ if (!Array.prototype.indexOf) {
 		this.stopped = true;
 		this.noani = false;
 		this.intervalId = 0;
+		this.forceStop = false;
 
 		// 초기화
 		this.init();
@@ -158,13 +174,16 @@ if (!Array.prototype.indexOf) {
 		// 엘리먼트 속성 적용
 		var _this = this;
 		this.ele.$wrap.bind("mouseenter", function () {
+			_this.forceStop = true;
 			_this.pause();
 		}).bind("mouseleave", function () {
+			_this.forceStop = false;
 			_this.resume();
 		});
 		
 		// autoplay
 		if (this.args.play.auto) {
+			this.paused = false;
 			this.play();
 		}
 		
@@ -181,7 +200,7 @@ if (!Array.prototype.indexOf) {
 			this.totalUnit = this.ele.$unit.length;
 			
 			// movingCnt를 적용 할 만큼 적당한 unit이 없을 경우
-			if (this.args.play.movingCnt < 1 || this.totalUnit < this.args.group.count + this.args.play.movingCnt) {
+			if (this.args.endless && (this.args.play.movingCnt < 1 || this.totalUnit < this.args.group.count + this.args.play.movingCnt) ) {
 				this.args.play.movingCnt = 1;
 			}
 			
@@ -200,37 +219,42 @@ if (!Array.prototype.indexOf) {
 			this.initPosition(this.currentMoveto, this.nowIndex);
 			
 			// css3 prefix
-			var b = $.browser;
-			if (b.webkit || b.safari) {
-				this.prefix = "-webkit-";
-			} else if (b.msie) {
-				this.prefix = "-ms-";
-			} else if (b.mozilla) {
-				this.prefix = "-moz-";
-			} else if (b.opera) {
-				this.prefix = "-o-";
-			} else;
-			
+			var agent = navigator.userAgent.toLowerCase();
+			if (agent.indexOf("chrome") != -1) this.prefix = "-webkit-"; 
+			if (agent.indexOf("opera") != -1) this.prefix = "-o-";
+			if (agent.indexOf("firefox") != -1) this.prefix = "-moz-";
+			if (agent.indexOf("safari") != -1) this.prefix = "-webkit-";
+			if (agent.indexOf("msie") != -1) this.prefix = "-ms-"; 
+			if (agent.indexOf("mozilla/5.0") != -1) this.prefix = "-moz-";
+
 			// init event call
 			if (typeof this.args.events.init === "function") {
 				this.args.events.init.apply(null, [this.nowIndex]);
 			}
 		},
 		"play": function () {
+			this.stopped = false;
+			
 			if (this.intervalId) {
 				window.clearTimeout(this.intervalId);
 			}
+			
+			if (this.forceStop) {
+				return;
+			}
+			
 			this.intervalId = window.setTimeout( function (_this) {
 				return function () {
 					_this.next();
 					_this.play();
+					
+					if (typeof _this.args.events.timeout === "function") {
+						_this.args.events.timeout.apply(null, [_this.nowIndex]);
+					}
 				};
-				if (typeof _this.args.events.timeout === "function") {
-					_this.args.events.timeout.apply(null, [_this.nowIndex]);
-				}
 			}(this), this.args.play.intervalTime);
 			
-			this.stopped = false;
+			
 			
 			if (typeof this.args.events.play === "function") {
 				this.args.events.play.apply(null, [this.nowIndex]);
@@ -246,16 +270,17 @@ if (!Array.prototype.indexOf) {
 		},
 		"pause": function () {
 			window.clearTimeout(this.intervalId);
+			this.paused = true;
 			
 			if (typeof this.args.events.pause === "function") {
 				this.args.events.pause.apply(null, [this.nowIndex]);
 			}
 		},
 		"resume": function () {
-			if (!this.stopped) {
+			if (!this.stopped && this.paused) {
+				this.paused = false;
 				this.play();
 			}
-			
 			if (typeof this.args.events.resume === "function") {
 				this.args.events.resume.apply(null, [this.nowIndex]);
 			}
@@ -297,7 +322,7 @@ if (!Array.prototype.indexOf) {
 			}
 			
 			// 방향 설정;
-			var moveto = moveto || _moveto.left;
+			var moveto = moveto || (this.currentDir == _direction.hor ? _moveto.left : _moveto.up);
 			if (moveto != this.currentMoveto) {
 				this.initPosition(moveto); // 방향전환에 따른 불필요한 애니메이션을 없애기 위해
 			}
@@ -383,14 +408,15 @@ if (!Array.prototype.indexOf) {
 				cls = "",
 				timeout = 0,
 				maxtime = 0,
-				$item = {};
+				$item = {},
+				arrItem = [];
 			
 			var s = idx * this.args.play.movingCnt, 
 				e = s + this.args.group.count,
 				i = s,
 				n = 0;
 			for (; i < e; i++, n++) {
-				if (i >= this.totalUnit) {
+				if (this.args.endless && i >= this.totalUnit) {
 					$item = this.ele.$unit.eq(i - this.totalUnit);
 				} else {
 					$item = this.ele.$unit.eq(i);
@@ -428,6 +454,7 @@ if (!Array.prototype.indexOf) {
 				
 				$cleanClass = _fn.filterClass($item.attr("class"), /ibr_*/, ["ibr_unit", "ibr_noani"]);
 				$item.attr("class", $cleanClass).addClass(cls);
+				arrItem.push($item.get(0));
 				
 				maxtime = parseFloat($item.css("transition-duration")) + parseFloat($item.css("transition-delay"));
 				if (maxtime > timeout) {
@@ -438,6 +465,8 @@ if (!Array.prototype.indexOf) {
 			window.setTimeout(function () {
 				end.apply(null, [idx]);
 			}, timeout * 1000);
+			
+			this.args.events.onChangeState.apply(null, [state, arrItem]);
 		}
 	};
 	
@@ -445,5 +474,6 @@ if (!Array.prototype.indexOf) {
 	window.ibr.fn = _fn;
 	window.ibr.dir = _direction;
 	window.ibr.move = _moveto;
+	window.ibr.state = _state;
 	
 }(window, jQuery));
